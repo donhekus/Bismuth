@@ -15,7 +15,7 @@ node_ip_conf = config.node_ip_conf
 purge_conf = config.purge_conf
 pause_conf = config.pause_conf
 ledger_path_conf = config.ledger_path_conf
-hyperblocks_conf = config.hyperblocks_conf
+#hyperblocks_conf = config.hyperblocks_conf
 ban_threshold = config.ban_threshold
 tor_conf = config.tor_conf
 debug_level_conf = config.debug_level_conf
@@ -254,7 +254,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             app_log.warning("Received a block from miner {} ({})".format(peer_ip,miner_address))
 
             block_send = connections.receive(self.request, 10)
-            nonce = (block_send[-1][7])
+            nonce = block_send[-1][-1][7]
 
             app_log.warning("Combined mined segments: {}".format(block_send))
 
