@@ -255,12 +255,13 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
 
             block_send = connections.receive(self.request, 10)
             nonce = block_send[-1][-1][7]
+            db_block_hash = block_send[-1][-1][8]
 
-            app_log.warning("Combined mined segments: {}".format(block_send))
+            #app_log.warning("Combined mined segments: {}".format(block_send))
 
-            #print(nonce)
-            #print(block_send)
-            #print(miner_address)
+            print("nonce " + nonce)
+            #print("block" + block_send)
+            print("address " + miner_address)
 
             # check difficulty
             app_log.warning("Asking node for difficulty")
@@ -271,9 +272,9 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
             app_log.warning("Asking node for last block")
 
             # get last block
-            connections.send(s1, "blocklast", 10)
-            blocklast = connections.receive(s1, 10)
-            db_block_hash = blocklast[7]
+            #connections.send(s1, "blocklast", 10)
+            #blocklast = connections.receive(s1, 10)
+            #db_block_hash = blocklast[7]
             # get last block
 
             app_log.warning("Last Hash: {}".format(db_block_hash))

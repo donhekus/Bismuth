@@ -112,7 +112,7 @@ class oclDevice:
 
             self.programHigh_ = cl.Program( self.ctx_, source )
             print( "Compiling OpenCL high diffculty miner for {}...".format( self.getName() ) )
-            compileOp.append( "-DSEARCH_KEY_OVER_5=1" )
+            compileOp.append( "-DSEARCH_KEY_OVER_5=0" )
             self.programHigh_.build( options=compileOp, devices=[ self.device_ ] )
 
             kernelHi0 = self.programHigh_.bismuth
@@ -242,8 +242,8 @@ class oclDevice:
             if (loop & 1) == 0:
                 hashesCnt = loop * 2 * self.hashCount()
                 cycles_per_second = hashesCnt/looptime
-                #print( "Thread{} {} @ {:,.4f} sec, {:,.2f} cycles/second, hashes: {:,}".format(
-                #    self.threadId_, self.label_, looptime, cycles_per_second, hashesCnt ) )
+                print( "Thread{} {} @ {:,.4f} sec, {:,.2f} hash/second, hashes: {:,}".format(
+                    self.threadId_, self.label_, looptime, cycles_per_second, hashesCnt ) )
                 loop = 0
                 looptime = 0
 

@@ -38,6 +38,7 @@ pool_conf = config.pool_conf
 ram_conf = config.ram_conf
 pool_address = config.pool_address_conf
 version = config.version_conf
+opencl_hash_count = config.opencl_hash_count_conf
 
 if "testnet" in version:
     port = 2829
@@ -281,20 +282,27 @@ def miner(privatekey_readable, public_key_hashed, address, miners, resultQueue):
                 start = time.time()
 
                 nonce = candidate.tobytes('C').hex()
-                #np.set_printoptions(formatter={'int':hex})
-                #print( "(python) Nonce: {}".format( nonce ) )
-                #seeder = db_block_hash.encode("utf-8")
-                #print( "(python) Seeder: {}".format( seeder ) )
-                #debug_hash = hashlib.sha224((address + nonce + db_block_hash).encode("utf-8")).hexdigest()
-                #print( "(python) Hash            : {}".format( debug_hash ) )
-                #print( "(python) mining_condition: {}".format( db_block_hash[0:int(diff/8)+1] ) )
+                np.set_printoptions(formatter={'int':hex})
+                print( "(python) Nonce: {}".format( nonce ) )
+                seeder = db_block_hash.encode("utf-8")
+                print( "(python) Seeder: {}".format( seeder ) )
+                debug_hash = hashlib.sha224((address + nonce + db_block_hash).encode("utf-8")).hexdigest()
+                print( "(python) Hash            : {}".format( debug_hash ) )
+                print( "(python) address: {}".format(address))
+                print( "(python) mining_condition: {}".format( db_block_hash[0:int(diff/8)+1] ) )
+
+                mining_condition = bin_convert(db_block_hash)[0:diff]
                 mining_hash = bin_convert(hashlib.sha224((address + nonce + db_block_hash).encode("utf-8")).hexdigest())
                 tries = tries + 1
 
+                print("Hashrate: {} hash/sec".format(tries * opencl_hash_count / elapsed))
+                #print(mining_hash)
+                #print(mining_condition)
                 if mining_condition in mining_hash:
-                    tries = 0
+
 
                     print("Thread {} found a good block hash in {} cycles".format(q, tries))
+                    tries = 0
 
                     # serialize txs
 
@@ -335,8 +343,8 @@ def miner(privatekey_readable, public_key_hashed, address, miners, resultQueue):
                     if signer.verify(h, signature) == True:
                         print("Signature valid")
 
-                        block_send.append((str(block_timestamp), str(address[:56]), str(address[:56]), '%.8f' % float(0), str(signature_enc.decode("utf-8")), str(public_key_hashed), "0", str(nonce)))  # mining reward tx
-                        print("Block to send: {}".format(block_send))
+                        block_send.append((str(block_timestamp), str(address[:56]), str(address[:56]), '%.8f' % float(0), str(signature_enc.decode("utf-8")), str(public_key_hashed), "0", str(nonce), db_block_hash))  # mining reward tx
+                        #print("Block to send: {}".format(block_send))
 
                         if not any(isinstance(el, list) for el in block_send):  # if it's not a list of lists (only the mining tx and no others)
                             new_list = []
@@ -346,18 +354,16 @@ def miner(privatekey_readable, public_key_hashed, address, miners, resultQueue):
                         #  claim reward
                         # include data
 
-                        tries = 0
-
                         # submit mined block to node
 
                         if sync_conf == 1:
                             check_uptodate(300)
 
                         if pool_conf == 1:
-                            mining_condition = bin_convert(db_block_hash)[0:diff_real]
-                            if mining_condition in mining_hash:
-                                print("Miner: Submitting block to all nodes, because it satisfies real difficulty too")
-                                threading.Thread( target=nodes_block_submit, args=(block_send, ) ).start()
+                            #mining_condition = bin_convert(db_block_hash)[0:diff_real]
+                            #if mining_condition in mining_hash:
+                            #    print("Miner: Submitting block to all nodes, because it satisfies real difficulty too")
+                            #    threading.Thread( target=nodes_block_submit, args=(block_send, ) ).start()
 
                             try:
                                 s_pool = socks.socksocket()
@@ -384,7 +390,6 @@ def miner(privatekey_readable, public_key_hashed, address, miners, resultQueue):
                             threading.Thread( target=nodes_block_submit, args=(block_send, ) ).start()
                     else:
                         print("Invalid signature")
-            tries = 0
 
         except Exception as e:
             print(e)
